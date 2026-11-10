@@ -10,6 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Localizar projeto Android
+        run: |
+          F=$(find . -name settings.gradle -not -path './.git/*' | head -1)
+          if [ -z "$F" ]; then
+            echo "settings.gradle NAO encontrado. Arquivos no repo:"
+            find . -not -path './.git/*' -maxdepth 3 | head -80
+            exit 1
+          fi
+          echo "ANDROID_DIR=$(dirname "$F")" >> $GITHUB_ENV
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -26,11 +36,11 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build APK
-        working-directory: android
+        working-directory: ${{ env.ANDROID_DIR }}
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: dsr-native-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: ${{ env.ANDROID_DIR }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
