@@ -10,12 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Localizar projeto Android
+      - name: Extrair zip e localizar projeto Android
         run: |
+          for z in *.zip; do [ -f "$z" ] && unzip -q -o "$z" -d extraido; done
           F=$(find . -name settings.gradle -not -path './.git/*' | head -1)
           if [ -z "$F" ]; then
-            echo "settings.gradle NAO encontrado. Arquivos no repo:"
-            find . -not -path './.git/*' -maxdepth 3 | head -80
+            echo "settings.gradle NAO encontrado. Arquivos:"
+            find . -not -path './.git/*' -maxdepth 4 | head -80
             exit 1
           fi
           echo "ANDROID_DIR=$(dirname "$F")" >> $GITHUB_ENV
